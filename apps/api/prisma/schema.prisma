@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String                 @id @default(uuid())
+  email          String                 @unique
+  passwordHash   String
+  name           String
+  createdAt      DateTime               @default(now())
+  documents      Document[]
+  collaborations DocumentCollaborator[]
+  refreshTokens  RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id            String                 @id @default(uuid())
+  title         String
+  ownerId       String
+  owner         User                   @relation(fields: [ownerId], references: [id])
+  state         Bytes
+  stateVector   Bytes
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  collaborators DocumentCollaborator[]
+  snapshots     DocumentSnapshot[]
+  operations    SyncOperation[]
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model DocumentCollaborator {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId])
+}
+
+model DocumentSnapshot {
+  id           String   @id @default(uuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  versionLabel String
+  content      Bytes
+  createdById  String
+  createdAt    DateTime @default(now())
+}
+
+model SyncOperation {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  clientId    String
+  seq         Int
+  update      Bytes
+  createdById String
+  createdAt   DateTime @default(now())
+
+  @@unique([documentId, clientId, seq])
+}
