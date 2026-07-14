@@ -1,15 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @source "./app";
 @source "./components";
 
+@theme {
+  --color-primary: #4b2fd6;
+  --color-primary-dark: #34209a;
+  --color-surface: #f7f6fd;
+  --color-surface-alt: #edebff;
+  --color-outline: #dad6f5;
+  --color-ink: #0b1c30;
+}
+
 body {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #f8f9ff;
-  color: #0b1c30;
+  font-family: "Montserrat", sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
 }
 
 ::selection {
-  background-color: #e2dfff;
-  color: #0f0069;
+  background-color: var(--color-surface-alt);
+  color: var(--color-primary-dark);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.36;
+    transform: scale(1.03);
+  }
+}
+.animate-breathe {
+  animation: breathe 6s ease-in-out infinite;
 }

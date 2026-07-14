@@ -15,10 +15,10 @@ export default function LandingPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Already signed in - skip the login screen entirely.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.replace("/documents");
@@ -48,7 +48,6 @@ export default function LandingPage() {
     setError(null);
   }
 
-  // Avoid flashing the form while we check for an existing session.
   if (isLoading || isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -62,17 +61,16 @@ export default function LandingPage() {
       <main className="pt-16 min-h-screen flex items-center bg-gradient-to-br from-surface via-surface-alt to-white overflow-hidden">
         <div className="container mx-auto px-6 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left: value prop */}
             <div className="relative space-y-6 max-w-xl">
-              {/* Subtle floating overlay of screen.png, sits behind the copy */}
-              <div className="pointer-events-none absolute -top-20 -left-12 w-[420px] h-[420px] opacity-[0.08] animate-float select-none -z-10">
+              <div className="pointer-events-none absolute -top-24 -left-16 w-[460px] h-[460px] opacity-[0.55] animate-float animate-breathe select-none -z-10">
                 <Image
                   src="/screen.png"
                   alt=""
                   fill
-                  className="object-contain"
+                  className="object-contain brightness-[0.7] saturate-[0.9] contrast-[1.1] drop-shadow-[0_20px_40px_rgba(75,47,214,0.35)]"
                   priority
                 />
+                <div className="absolute inset-0 bg-gradient-to-br from-ink/25 via-primary/15 to-transparent" />
               </div>
 
               <div className="inline-flex items-center gap-2 bg-surface-alt text-primary px-4 py-1 rounded-full border border-primary/10">
@@ -82,7 +80,7 @@ export default function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="text-5xl font-extrabold tracking-tight leading-tight">
+              <h1 className="text-5xl font-extrabold tracking-tight leading-tight text-ink">
                 Write anywhere. <span className="text-primary italic">Sync</span>{" "}
                 everywhere.
               </h1>
@@ -111,17 +109,19 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right: auth card */}
             <div className="flex justify-center lg:justify-end">
-              <div className="w-full max-w-md bg-white rounded-xl shadow-2xl border border-outline overflow-hidden">
-                <div className="flex border-b border-outline">
+              <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-primary/10 border border-outline overflow-hidden">
+                <div className="relative flex border-b border-outline">
+                  <div
+                    className={`absolute bottom-0 h-[3px] w-1/2 bg-primary transition-transform duration-300 ${
+                      mode === "signup" ? "translate-x-full" : "translate-x-0"
+                    }`}
+                  />
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className={`flex-1 py-4 font-semibold text-center transition-all ${
-                      mode === "signin"
-                        ? "text-primary border-b-2 border-primary"
-                        : "text-gray-400"
+                    className={`flex-1 py-5 font-semibold text-center transition-colors ${
+                      mode === "signin" ? "text-primary" : "text-gray-400 hover:text-ink"
                     }`}
                   >
                     Sign In
@@ -129,73 +129,74 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signup")}
-                    className={`flex-1 py-4 font-semibold text-center transition-all ${
-                      mode === "signup"
-                        ? "text-primary border-b-2 border-primary"
-                        : "text-gray-400"
+                    className={`flex-1 py-5 font-semibold text-center transition-colors ${
+                      mode === "signup" ? "text-primary" : "text-gray-400 hover:text-ink"
                     }`}
                   >
                     Create Account
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                <form onSubmit={handleSubmit} className="p-10 space-y-6">
                   {mode === "signup" && (
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
-                        Name
-                      </label>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Name</label>
                       <input
                         type="text"
                         placeholder="Jane Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                        className="w-full rounded-2xl border border-outline px-5 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                       />
                     </div>
                   )}
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
-                      Email
-                    </label>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Email</label>
                     <input
                       type="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      className="w-full rounded-2xl border border-outline px-5 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-                    />
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className="w-full rounded-2xl border border-outline px-5 py-3.5 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                      >
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
                   </div>
 
-                  {error && <p className="text-sm text-red-500">{error}</p>}
+                  {error && <p className="text-sm text-red-500 pt-2">{error}</p>}
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-primary hover:bg-primary-dark text-white py-4 rounded-2xl font-semibold text-base transition-all active:scale-[0.985] disabled:opacity-60 disabled:cursor-not-allowed mt-4"
                   >
                     {submitting
                       ? "Please wait..."
                       : mode === "signin"
-                      ? "Sign In to Workspace"
+                      ? "Sign In"
                       : "Create Account"}
                   </button>
                 </form>
@@ -211,30 +212,13 @@ export default function LandingPage() {
             Anushka • Fullstack Developer Assignment
           </p>
           <div className="flex gap-6 text-xs text-gray-400">
-            <a href="#" className="hover:underline">
-              GitHub
-            </a>
-            <a href="#" className="hover:underline">
-              LinkedIn
-            </a>
+            <a href="#" className="hover:underline hover:text-primary transition-colors">GitHub</a>
+            <a href="#" className="hover:underline hover:text-primary transition-colors">LinkedIn</a>
           </div>
         </div>
       </footer>
 
-      <style jsx global>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-14px);
-          }
-        }
-        .animate-float {
-          animation: float 7s ease-in-out infinite;
-        }
-      `}</style>
+   
     </div>
   );
 }
