@@ -14,6 +14,8 @@ export const collaboratorParamsSchema = z.object({
   collaboratorId: z.string().uuid(),
 });
 
+
+
 export const documentIdParamSchema = z.object({
   id: z.string().uuid(),
 });
