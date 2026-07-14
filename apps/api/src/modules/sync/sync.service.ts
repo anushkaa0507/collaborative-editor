@@ -24,10 +24,15 @@ export async function pushUpdate(
   const updateBuffer = Buffer.from(updateBase64, "base64");
 
   const ydoc = new Y.Doc();
-  if (document.state.length > 0) {
-    Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  try {
+    if (document.state.length > 0) {
+      Y.applyUpdate(ydoc, new Uint8Array(document.state));
+    }
+    Y.applyUpdate(ydoc, new Uint8Array(updateBuffer));
+  } catch {
+    ydoc.destroy();
+    throw { status: 400, message: "Invalid sync update payload" };
   }
-  Y.applyUpdate(ydoc, new Uint8Array(updateBuffer));
 
   const newState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
   const newStateVector = Buffer.from(Y.encodeStateVector(ydoc));
@@ -58,16 +63,26 @@ export async function pullUpdates(documentId: string, clientStateVectorBase64?: 
   if (!document) throw { status: 404, message: "Document not found" };
 
   const ydoc = new Y.Doc();
-  if (document.state.length > 0) {
-    Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  try {
+    if (document.state.length > 0) {
+      Y.applyUpdate(ydoc, new Uint8Array(document.state));
+    }
+  } catch {
+    ydoc.destroy();
+    throw { status: 500, message: "Corrupted document state" };
   }
 
   let diff: Uint8Array;
-  if (clientStateVectorBase64) {
-    const clientStateVector = new Uint8Array(Buffer.from(clientStateVectorBase64, "base64"));
-    diff = Y.encodeStateAsUpdate(ydoc, clientStateVector);
-  } else {
-    diff = Y.encodeStateAsUpdate(ydoc);
+  try {
+    if (clientStateVectorBase64) {
+      const clientStateVector = new Uint8Array(Buffer.from(clientStateVectorBase64, "base64"));
+      diff = Y.encodeStateAsUpdate(ydoc, clientStateVector);
+    } else {
+      diff = Y.encodeStateAsUpdate(ydoc);
+    }
+  } catch {
+    ydoc.destroy();
+    throw { status: 400, message: "Invalid state vector" };
   }
 
   const serverStateVector = Y.encodeStateVector(ydoc);
