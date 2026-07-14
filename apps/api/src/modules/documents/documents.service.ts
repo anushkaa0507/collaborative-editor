@@ -1,15 +1,23 @@
 import { prisma } from "../../config/db";
 import { Role } from "../../generated/prisma";
+import * as Y from "yjs";
 
-const EMPTY_BUFFER = Buffer.alloc(0);
+function emptyYjsState() {
+  const doc = new Y.Doc();
+  const state = Buffer.from(Y.encodeStateAsUpdate(doc));
+  const stateVector = Buffer.from(Y.encodeStateVector(doc));
+  doc.destroy();
+  return { state, stateVector };
+}
 
 export async function createDocument(ownerId: string, title: string) {
+  const { state, stateVector } = emptyYjsState();
   return prisma.document.create({
     data: {
       title,
       ownerId,
-      state: EMPTY_BUFFER,
-      stateVector: EMPTY_BUFFER,
+      state,
+      stateVector,
     },
   });
 }

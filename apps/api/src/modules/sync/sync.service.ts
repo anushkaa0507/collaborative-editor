@@ -15,13 +15,18 @@ export async function pushUpdate(
     where: { documentId_clientId_seq: { documentId, clientId, seq } },
   });
   if (existing) {
-    return { alreadyApplied: true, stateVector: document.stateVector.toString("base64") };
+    return {
+      alreadyApplied: true,
+      stateVector: Buffer.from(document.stateVector).toString("base64"),
+    };
   }
 
   const updateBuffer = Buffer.from(updateBase64, "base64");
 
   const ydoc = new Y.Doc();
-  Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  if (document.state.length > 0) {
+    Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  }
   Y.applyUpdate(ydoc, new Uint8Array(updateBuffer));
 
   const newState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
@@ -53,7 +58,9 @@ export async function pullUpdates(documentId: string, clientStateVectorBase64?: 
   if (!document) throw { status: 404, message: "Document not found" };
 
   const ydoc = new Y.Doc();
-  Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  if (document.state.length > 0) {
+    Y.applyUpdate(ydoc, new Uint8Array(document.state));
+  }
 
   let diff: Uint8Array;
   if (clientStateVectorBase64) {
