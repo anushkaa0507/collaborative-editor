@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const document_access_middleware_1 = require("../middleware/document-access.middleware");
+const documents_controller_1 = require("./documents.controller");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.requireAuth);
+router.post("/", documents_controller_1.create);
+router.get("/", documents_controller_1.list);
+router.get("/:id", (0, document_access_middleware_1.requireDocumentRole)("VIEWER"), documents_controller_1.getOne);
+router.patch("/:id", (0, document_access_middleware_1.requireDocumentRole)("EDITOR"), documents_controller_1.update);
+router.delete("/:id", (0, document_access_middleware_1.requireDocumentRole)("OWNER"), documents_controller_1.remove);
+exports.default = router;
