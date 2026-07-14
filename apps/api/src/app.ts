@@ -3,13 +3,14 @@ import cors from "cors";
 
 import authRoutes from "./modules/auth/auth.routes";
 import { errorHandler } from "./modules/middleware/error.middleware";
-
+import documentRoutes from "./modules/documents/documents.routes";
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.get("/health", (_, res) => {
   res.status(200).json({
