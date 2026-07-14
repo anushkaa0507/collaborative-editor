@@ -1,68 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/lib/api/auth.service";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { useAuth } from "@/lib/auth/auth-context";
+
+type Mode = "signin" | "signup";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const { isAuthenticated, isLoading, login, register } = useAuth();
+
+  const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Already signed in - skip the login screen entirely.
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace("/documents");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setSubmitting(true);
     try {
       if (mode === "signin") {
-        await authService.login(email, password);
+        await login(email, password);
       } else {
-        await authService.register(name, email, password);
+        await register(name, email, password);
       }
       router.push("/documents");
     } catch (err: any) {
       setError(err?.response?.data?.message || "Something went wrong");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError(null);
+  }
+
+  // Avoid flashing the form while we check for an existing session.
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-outline bg-white flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <span className="text-primary font-extrabold text-xl">CollabDoc</span>
-        </div>
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
-          <span className="text-primary font-semibold">Documents</span>
-          <span>Version History</span>
-          <span>Collaborators</span>
-        </nav>
-      </header>
-
-      <main className="pt-16 min-h-screen flex items-center bg-gradient-to-br from-surface via-surface-alt to-white">
+      <main className="pt-16 min-h-screen flex items-center bg-gradient-to-br from-surface via-surface-alt to-white overflow-hidden">
         <div className="container mx-auto px-6 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6 max-w-xl">
+            {/* Left: value prop */}
+            <div className="relative space-y-6 max-w-xl">
+              {/* Subtle floating overlay of screen.png, sits behind the copy */}
+              <div className="pointer-events-none absolute -top-20 -left-12 w-[420px] h-[420px] opacity-[0.08] animate-float select-none -z-10">
+                <Image
+                  src="/screen.png"
+                  alt=""
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
               <div className="inline-flex items-center gap-2 bg-surface-alt text-primary px-4 py-1 rounded-full border border-primary/10">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs uppercase font-bold tracking-widest">Offline-First Sync Engine</span>
+                <span className="text-xs uppercase font-bold tracking-widest">
+                  Offline-First Sync Engine
+                </span>
               </div>
 
               <h1 className="text-5xl font-extrabold tracking-tight leading-tight">
-                Write anywhere. <span className="text-primary italic">Sync</span> everywhere.
+                Write anywhere. <span className="text-primary italic">Sync</span>{" "}
+                everywhere.
               </h1>
 
               <p className="text-lg text-gray-600 leading-relaxed">
-                A local-first, collaborative document editor with deterministic conflict resolution,
-                granular version history, and real-time sync that never blocks your UI —
-                even offline.
+                A local-first, collaborative document editor with deterministic
+                conflict resolution, granular version history, and real-time
+                sync that never blocks your UI — even offline.
               </p>
 
               <div className="flex items-center gap-8 pt-6 border-t border-outline">
@@ -83,12 +111,13 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Right: auth card */}
             <div className="flex justify-center lg:justify-end">
               <div className="w-full max-w-md bg-white rounded-xl shadow-2xl border border-outline overflow-hidden">
                 <div className="flex border-b border-outline">
                   <button
                     type="button"
-                    onClick={() => setMode("signin")}
+                    onClick={() => switchMode("signin")}
                     className={`flex-1 py-4 font-semibold text-center transition-all ${
                       mode === "signin"
                         ? "text-primary border-b-2 border-primary"
@@ -99,7 +128,7 @@ export default function LandingPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMode("signup")}
+                    onClick={() => switchMode("signup")}
                     className={`flex-1 py-4 font-semibold text-center transition-all ${
                       mode === "signup"
                         ? "text-primary border-b-2 border-primary"
@@ -116,11 +145,13 @@ export default function LandingPage() {
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
                         Name
                       </label>
-                      <Input
+                      <input
+                        type="text"
                         placeholder="Jane Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
+                        className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                       />
                     </div>
                   )}
@@ -129,12 +160,13 @@ export default function LandingPage() {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
                       Email
                     </label>
-                    <Input
+                    <input
                       type="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -142,24 +174,30 @@ export default function LandingPage() {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
                       Password
                     </label>
-                    <Input
+                    <input
                       type="password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      minLength={8}
+                      className="w-full rounded-lg border border-outline px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
                   </div>
 
                   {error && <p className="text-sm text-red-500">{error}</p>}
 
-                  <Button type="submit" disabled={loading}>
-                    {loading
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting
                       ? "Please wait..."
                       : mode === "signin"
                       ? "Sign In to Workspace"
                       : "Create Account"}
-                  </Button>
+                  </button>
                 </form>
               </div>
             </div>
@@ -169,13 +207,34 @@ export default function LandingPage() {
 
       <footer className="bg-white border-t border-outline py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-400">Anushka • Fullstack Developer Assignment</p>
+          <p className="text-xs text-gray-400">
+            Anushka • Fullstack Developer Assignment
+          </p>
           <div className="flex gap-6 text-xs text-gray-400">
-            <a href="#" className="hover:underline">GitHub</a>
-            <a href="#" className="hover:underline">LinkedIn</a>
+            <a href="#" className="hover:underline">
+              GitHub
+            </a>
+            <a href="#" className="hover:underline">
+              LinkedIn
+            </a>
           </div>
         </div>
       </footer>
+
+      <style jsx global>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-14px);
+          }
+        }
+        .animate-float {
+          animation: float 7s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
