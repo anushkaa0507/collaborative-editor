@@ -140,6 +140,13 @@ export default function DocumentEditorPage() {
     };
   }, [isAuthenticated, params?.id, updateEditorFromYjs]);
 
+  
+  useEffect(() => {
+    if (!loading) {
+      updateEditorFromYjs();
+    }
+  }, [loading, updateEditorFromYjs]);
+
   const syncWithServer = useCallback(
     async (opts?: { announce?: boolean }) => {
       if (!ydocRef.current || !params?.id || isSyncingRef.current || doc?.role === "VIEWER") return;
