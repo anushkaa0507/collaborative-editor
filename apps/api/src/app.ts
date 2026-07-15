@@ -19,7 +19,7 @@ app.use("/api/documents/:id/collaborators", collaboratorRoutes);
 app.use("/api/documents/:id/sync", syncRoutes);
 app.use("/api/documents/:id/snapshots", snapshotRoutes);
 
-app.use("/api/documents/:id/assist", aiRoutes);
+app.use("/api/documents/:id", aiRoutes);
 app.get("/health", (_, res) => {
   res.status(200).json({
     status: "ok",

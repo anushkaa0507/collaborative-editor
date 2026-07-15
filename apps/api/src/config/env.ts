@@ -6,6 +6,7 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL_DAYS: z.string().default("30"),
+  GROQ_API_KEY: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

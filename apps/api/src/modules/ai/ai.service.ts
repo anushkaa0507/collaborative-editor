@@ -17,7 +17,7 @@ export async function runAiAssist(action: string, text: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${(env as any).GROQ_API_KEY}`,
+Authorization: `Bearer ${env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
