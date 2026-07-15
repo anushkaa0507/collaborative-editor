@@ -1,31 +1,44 @@
 # CollabDoc
 
-A local-first collaborative document editor. Documents are editable offline, changes are queued and pushed once the connection comes back, and conflicts between concurrent edits are resolved deterministically instead of overwriting anyone's work. Built for the House of Edtech Fullstack Developer assignment (v2.1).
+A local-first collaborative document editor built for the House of Edtech Fullstack Developer Assignment (v2.1).
 
-## Why local-first
+CollabDoc allows documents to remain editable even when the network disappears. Changes made while offline are stored locally and synchronized automatically once connectivity returns. Concurrent edits are merged using Yjs CRDTs, preventing the typical "last write wins" problem that causes data loss in traditional collaborative editors.
 
-Most "collaborative editor" implementations treat the server as the source of truth and the client as a thin view on top of it — which means the UI blocks or breaks the moment the network drops. This project inverts that: the client's Yjs document is the source of truth for the user currently editing. The server is a durable relay and merge point, not a gatekeeper. Practically, that means:
+## Features
 
-- Opening, editing, and closing a document never waits on a network request.
-- Edits made offline are kept in a mutation queue and replayed against the server once connectivity returns.
-- Merging is handled by Yjs's CRDT algorithm, so two people editing the same paragraph offline don't produce a "last write wins" data loss — both edits are preserved and interleaved deterministically.
-- Version history is separate from the live CRDT state on purpose: snapshots are immutable point-in-time copies, so restoring an old version can't corrupt what other collaborators are currently editing.
+* Offline-first editing
+* Real-time collaboration
+* Automatic synchronization after reconnecting
+* Conflict-free merging with CRDTs
+* Version history and snapshot restoration
+* Role-based access control
+* JWT authentication with refresh tokens
+* AI-assisted writing tools
+* Mutation queue for offline updates
+* Delta synchronization using state vectors
 
-## Tech stack
+---
 
-| Layer | Choice |
-|---|---|
-| Frontend | Next.js 16 (App Router), React, TypeScript, Tailwind CSS |
-| Backend | Node.js / Express, TypeScript |
-| Realtime sync | Yjs (CRDT), WebSocket |
-| Database | PostgreSQL, Prisma ORM |
-| Auth | JWT (access + refresh tokens) |
-| AI | Configurable provider (OpenAI / Gemini / Groq) for summarize, grammar fix, continue-writing |
-| CI/CD | GitHub Actions → Vercel (web) / Railway or Render (api) |
+## Tech Stack
 
-## Monorepo layout
+| Layer              | Technology                       |
+| ------------------ | -------------------------------- |
+| Frontend           | Next.js 16, React 19, TypeScript |
+| Styling            | Tailwind CSS v4                  |
+| Forms & Validation | React Hook Form, Zod             |
+| Backend            | Node.js, Express 5, TypeScript   |
+| Database           | PostgreSQL                       |
+| ORM                | Prisma                           |
+| Authentication     | JWT                              |
+| Realtime Sync      | Yjs, WebSockets (`ws`)           |
+| AI                 | OpenAI / Gemini / Groq           |
+| Deployment         | Vercel + Render                  |
 
-```
+---
+
+## Project Structure
+
+```text
 collabdoc/
 ├── .github/
 │   └── workflows/
@@ -33,14 +46,8 @@ collabdoc/
 ├── apps/
 │   ├── api/
 │   │   ├── prisma/
-│   │   │   ├── migrations/
-│   │   │   │   └── 20260713164608_init/
-│   │   │   │       └── migration.sql
-│   │   │   └── schema.prisma
 │   │   ├── src/
 │   │   │   ├── config/
-│   │   │   │   ├── db.ts
-│   │   │   │   └── env.ts
 │   │   │   ├── modules/
 │   │   │   │   ├── ai/
 │   │   │   │   ├── auth/
@@ -49,103 +56,188 @@ collabdoc/
 │   │   │   │   ├── middleware/
 │   │   │   │   ├── snapshots/
 │   │   │   │   ├── sync/
-│   │   │   │   ├── types/
-│   │   │   │   ├── utils/
-│   │   │   │   └── websocket/
+│   │   │   │   ├── websocket/
+│   │   │   │   └── utils/
 │   │   │   ├── app.ts
 │   │   │   └── server.ts
 │   │   ├── tests/
-│   │   ├── prisma.config.ts
-│   │   ├── package.json
-│   │   └── tsconfig.json
+│   │   └── package.json
+│   │
 │   └── web/
-│       ├── api/
-│       │   └── api-client.ts
 │       ├── app/
-│       │   ├── documents/
-│       │   │   ├── [id]/
-│       │   │   │   ├── history/
-│       │   │   │   │   └── page.tsx
-│       │   │   │   └── page.tsx
-│       │   │   ├── documents-cache.ts
-│       │   │   ├── mutation-queue.ts
-│       │   │   └── page.tsx
-│       │   ├── favicon.ico
-│       │   ├── globals.css
-│       │   ├── icon.svg
-│       │   ├── layout.tsx
-│       │   ├── loading.tsx
-│       │   └── page.tsx
 │       ├── components/
-│       │   └── ui/
-│       │       ├── button.tsx
-│       │       ├── card.tsx
-│       │       ├── confirm-dialog.tsx
-│       │       ├── create-document-modal.tsx
-│       │       ├── doc-icon.tsx
-│       │       ├── input.tsx
-│       │       ├── label.tsx
-│       │       ├── share-modal.tsx
-│       │       ├── sidebar.tsx
-│       │       └── toast.tsx
-│       └── lib/
-│           ├── api/
-│           │   ├── auth.service.ts
-│           │   └── documents-service.ts
-│           └── auth/
-│               └── auth-context.tsx
+│       ├── lib/
+│       └── package.json
+│
 ├── package.json
 └── README.md
 ```
 
-Each module under `apps/api/src/modules` follows the same internal shape — `*.routes.ts`, `*.controllers.ts`, `*.service.ts`, `*.validators.ts` — so request validation, business logic, and route wiring stay separated instead of piling up in one file.
+Every backend module follows the same structure:
 
-## How sync works
+```text
+module/
+├── module.routes.ts
+├── module.controller.ts
+├── module.service.ts
+└── module.validator.ts
+```
 
-1. The editor writes into a `Y.Doc` locally. Every keystroke updates the in-memory CRDT state — nothing here touches the network.
-2. Edits are debounced and pushed to `/documents/:id/sync` along with the client's state vector. If the request fails (offline, timeout), the update stays queued.
-3. On reconnect, the mutation queue flushes in order. The server applies incoming updates via `Y.applyUpdate` and returns whatever the client is missing, encoded against the state vector it sent — so only the delta is transferred, not the whole document.
-4. Both sides converge to the same state regardless of the order updates arrive in, which is the whole point of using a CRDT instead of hand-rolled operational transforms.
+This separation keeps validation, routing and business logic independent and easier to maintain.
 
-## Version history
+---
 
-Snapshots are captured explicitly (not on every keystroke) and stored as their own row, independent of the live `Y.Doc` state. Restoring a snapshot replaces the current state but doesn't touch the snapshot log itself, and collaborators mid-edit get the restored state pushed to them through the same sync path edits normally flow through — so a restore can't silently discard someone's in-flight offline queue.
+## How Synchronization Works
 
-## Auth & access control
+### Local Editing
 
-- JWT access + refresh tokens, refresh handled transparently by an Axios interceptor.
-- Document roles: `OWNER`, `EDITOR`, `VIEWER`. Role is enforced both in the UI (buttons disabled for viewers) and on the server (sync/restore endpoints reject viewer tokens outright — the UI check is a convenience, not the actual boundary).
-- Prisma queries are scoped to the authenticated user's accessible documents; there's no endpoint that returns another tenant's data by guessing an ID.
+Every document is stored in a local `Y.Doc`.
 
-## Getting started
+Typing updates the local CRDT state immediately and never waits for a network request.
+
+### Mutation Queue
+
+Updates are debounced and sent to the backend sync endpoint.
+
+If the request fails because the user is offline, the update remains stored in a local mutation queue.
+
+### Reconnect
+
+When connectivity returns:
+
+* queued updates are replayed
+* the server merges updates
+* missing changes are returned to the client
+* both sides converge to the same state
+
+### Conflict Resolution
+
+CollabDoc uses CRDTs through Yjs rather than Operational Transforms.
+
+If two users edit the same section while disconnected:
+
+* no changes are lost
+* both edits are preserved
+* document state converges deterministically
+
+---
+
+## Version History
+
+Snapshots are stored independently from the active document state.
+
+This allows:
+
+* restoring previous versions safely
+* preserving historical snapshots
+* preventing snapshot restores from deleting another collaborator's queued changes
+
+---
+
+## Authentication
+
+Authentication uses:
+
+* JWT access tokens
+* JWT refresh tokens
+* bcrypt password hashing
+
+Refresh tokens are automatically handled through Axios interceptors on the frontend.
+
+---
+
+## Authorization
+
+Each document supports three roles:
+
+| Role   | Access         |
+| ------ | -------------- |
+| OWNER  | Full access    |
+| EDITOR | Read and write |
+| VIEWER | Read only      |
+
+Permissions are enforced both on the frontend and backend.
+
+Viewer accounts cannot modify document content even if API requests are manually crafted.
+
+---
+
+## API Modules
+
+### Auth
+
+* Register
+* Login
+* Token refresh
+* Password hashing
+
+### Documents
+
+* Create document
+* Update document
+* Delete document
+* Ownership validation
+
+### Collaborators
+
+* Share documents
+* Assign roles
+* Permission management
+
+### Sync
+
+* Yjs update handling
+* State vectors
+* Delta generation
+* CRDT merging
+
+### Snapshots
+
+* Create snapshots
+* Restore snapshots
+* Version history
+
+### AI
+
+Supports:
+
+* Summarize
+* Grammar correction
+* Continue writing
+
+AI providers can be switched between OpenAI, Gemini and Groq.
+
+---
+
+## Installation
+
+Clone the repository:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/anushkaa0507/collabdoc.git
 cd collabdoc
 npm install
 ```
 
-### API
+---
+
+## Backend Setup
+
+Navigate to the API project:
 
 ```bash
 cd apps/api
-cp .env.example .env   # fill in DATABASE_URL, JWT secrets, AI provider key
-npx prisma migrate deploy
-npm run dev
 ```
 
-### Web
+Create environment variables:
 
 ```bash
-cd apps/web
-cp .env.example .env   # NEXT_PUBLIC_API_URL, NEXT_PUBLIC_WS_URL
-npm run dev
+cp .env.example .env
 ```
 
-### Environment variables
+Add:
 
-**apps/api/.env**
-```
+```env
 DATABASE_URL=
 JWT_ACCESS_SECRET=
 JWT_REFRESH_SECRET=
@@ -153,35 +245,107 @@ AI_PROVIDER_API_KEY=
 PORT=4000
 ```
 
-**apps/web/.env**
+Run migrations:
+
+```bash
+npx prisma migrate deploy
 ```
-NEXT_PUBLIC_API_URL=
-NEXT_PUBLIC_WS_URL=
+
+Start development server:
+
+```bash
+npm run dev
 ```
+
+---
+
+## Frontend Setup
+
+Navigate to the frontend project:
+
+```bash
+cd apps/web
+```
+
+Create environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Add:
+
+```env
+NEXT_PUBLIC_API_URL=https://collaborative-editor-2v0h.onrender.com
+NEXT_PUBLIC_WS_URL=wss://collaborative-editor-2v0h.onrender.com
+```
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+---
 
 ## Testing
 
-Run backend tests with:
+Run backend tests:
 
 ```bash
 cd apps/api
 npm test
 ```
 
-Coverage focuses on the sync module — concurrent update merging, state vector diffing, and payload validation — since that's where correctness actually matters for this project.
+Current test coverage focuses on:
+
+* synchronization logic
+* state vector diffing
+* update merging
+* payload validation
+
+---
 
 ## Deployment
 
-- `web` deploys to Vercel from `apps/web`.
-- `api` deploys via the GitHub Actions workflow in `.github/workflows/backend.yml`, which runs migrations against the production database before restarting the service.
-- Both are wired to redeploy on push to `main` after tests pass.
+### Frontend
 
-## Known limitations / next steps
+https://collaborative-editor-virid.vercel.app
 
-- Document state is stored as a single serialized Yjs update; for very long-lived documents this should move to periodic snapshot compaction so the update log doesn't grow unbounded.
-- Presence is polled rather than pushed over the WebSocket channel — fine for a small assignment, would need to move onto the same socket as sync updates for real multi-user editing.
-- No automated E2E coverage yet for the offline → reconnect → merge flow specifically; it's currently verified manually by toggling devtools network throttling.
+### Backend
+
+https://collaborative-editor-2v0h.onrender.com
+
+Deployments are triggered automatically on pushes to the `main` branch.
+
+The backend GitHub Actions workflow runs database migrations before deployment.
+
+---
+
+## Known Limitations
+
+* Yjs updates are currently stored as serialized updates rather than compacted snapshots.
+* Presence updates are not yet delivered over WebSockets.
+* Offline synchronization is currently verified manually.
+* Large documents would benefit from snapshot compaction.
+
+---
+
+## Future Improvements
+
+* Cursor presence
+* Rich text formatting
+* Comment threads
+* Mention support
+* Snapshot compaction
+* End-to-end synchronization tests
+
+---
 
 ## Author
 
-Anushka Ramrakhya — [GitHub](https://github.com/anushkaa0507) · [LinkedIn](https://www.linkedin.com/in/anushka-ramrakhya-58734b363/)
+**Anushka Ramrakhya**
+
+GitHub: https://github.com/anushkaa0507
+
+LinkedIn: https://www.linkedin.com/in/anushka-ramrakhya-58734b363/
