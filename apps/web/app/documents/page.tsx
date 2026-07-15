@@ -89,7 +89,7 @@ function TrashIcon() {
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { showSuccess, showError } = useToast();
 
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
@@ -188,184 +188,154 @@ export default function DocumentsPage() {
     );
   }
 
-  const initial = (user?.name ?? user?.email ?? "U").charAt(0).toUpperCase();
-
   return (
-    <div className="min-h-screen bg-surface flex">
-      <aside className="w-72 shrink-0 border-r border-outline bg-white px-6 py-8 hidden lg:flex flex-col">
-        <div className="mb-10 flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">C</div>
-          <span className="text-2xl font-bold tracking-tighter text-ink">CollabDoc</span>
+    <div className="min-h-screen bg-surface">
+      <header className="h-16 border-b border-outline bg-white px-8 flex items-center gap-6 sticky top-0 z-30">
+        <div className="flex-1 max-w-2xl">
+          <div className="relative">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
+              <SearchIcon />
+            </div>
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full bg-surface-alt border border-outline focus:border-primary rounded-3xl pl-12 py-3 text-sm focus:outline-none transition-all"
+            />
+          </div>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center justify-center gap-3 bg-primary hover:bg-primary-dark text-white rounded-2xl py-4 font-semibold transition-all active:scale-[0.985] w-full mb-8"
-        >
-          <PlusIcon /> New Document
-        </button>
+        <div className={`flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
+          {isOnline ? "Online" : "Offline"}
+        </div>
 
-        <nav className="space-y-1">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface-alt text-primary font-semibold">
-            <div className="w-5 h-5 bg-primary rounded" />
-            My Drive
-          </div>
-        </nav>
-      </aside>
-
-      <div className="flex-1 flex flex-col">
-        <header className="h-16 border-b border-outline bg-white px-8 flex items-center gap-6 z-10">
-          <div className="lg:hidden flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-bold">C</div>
-            <span className="font-bold text-xl text-ink">CollabDoc</span>
-          </div>
-
-          <div className="flex-1 max-w-2xl">
-            <div className="relative">
-              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
-                <SearchIcon />
-              </div>
-              <input
-                type="text"
-                placeholder="Search documents..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-surface-alt border border-outline focus:border-primary rounded-3xl pl-12 py-3 text-sm focus:outline-none transition-all"
-              />
-            </div>
-          </div>
-
-          <div className={`flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-            <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
-            {isOnline ? "Online" : "Offline"}
-          </div>
-
-          <div className="flex items-center gap-2 bg-surface-alt rounded-3xl p-1">
-            <button
-              onClick={() => setView("grid")}
-              className={`p-2.5 rounded-2xl transition-all ${view === "grid" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
-            >
-              <GridIcon />
-            </button>
-            <button
-              onClick={() => setView("list")}
-              className={`p-2.5 rounded-2xl transition-all ${view === "list" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
-            >
-              <ListIcon />
-            </button>
-          </div>
-
+        <div className="flex items-center gap-2 bg-surface-alt rounded-3xl p-1">
           <button
-            onClick={() => logout?.().then(() => router.replace("/"))}
-            className="w-9 h-9 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center hover:bg-primary-dark transition-all"
-            title="Logout"
+            onClick={() => setView("grid")}
+            className={`p-2.5 rounded-2xl transition-all ${view === "grid" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
           >
-            {initial}
+            <GridIcon />
           </button>
-        </header>
+          <button
+            onClick={() => setView("list")}
+            className={`p-2.5 rounded-2xl transition-all ${view === "list" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
+          >
+            <ListIcon />
+          </button>
+        </div>
+      </header>
 
-        <main className="flex-1 p-8 overflow-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-semibold text-ink">My Documents</h2>
+      <main className="p-8">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-semibold text-ink">My Documents</h2>
+          <div className="flex items-center gap-4">
             <div className="text-sm text-gray-500">{filtered.length} documents</div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white rounded-2xl px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.985]"
+            >
+              <PlusIcon /> New Document
+            </button>
           </div>
+        </div>
 
-          {usingCache && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-3 rounded-2xl mb-6 text-sm">
-              You're offline — showing the last saved copy of your documents. New changes will sync once you're back online.
-            </div>
-          )}
+        {usingCache && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-3 rounded-2xl mb-6 text-sm">
+            You're offline — showing the last saved copy of your documents. New changes will sync once you're back online.
+          </div>
+        )}
 
-          {loadingDocs ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-60 bg-white border border-outline rounded-3xl animate-pulse" />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="text-6xl mb-6 opacity-40">📄</div>
-              <p className="text-2xl font-medium text-ink mb-2">
-                {query ? "No matching documents" : "No documents yet"}
-              </p>
-              <p className="text-gray-500 mb-8 max-w-xs">
-                {query ? "Try different keywords" : "Create your first document to begin"}
-              </p>
-              {!query && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-2xl font-semibold transition-all"
-                >
-                  Create New Document
-                </button>
-              )}
-            </div>
-          ) : view === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filtered.map((doc) => (
-                <div
-                  key={doc.id}
-                  onClick={() => router.push(`/documents/${doc.id}`)}
-                  className="group bg-white border border-outline hover:border-primary/30 rounded-3xl overflow-hidden transition-all hover:shadow-xl cursor-pointer"
-                >
-                  <div className="h-56 bg-surface-alt flex items-center justify-center relative">
-                    <FileIcon />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(doc.id);
-                      }}
-                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 bg-white p-2 rounded-xl shadow hover:bg-red-50 hover:text-red-600 transition-all"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                  <div className="p-5">
-                    <p className="font-medium text-ink line-clamp-2 mb-1.5">{doc.title}</p>
-                    <p className="text-xs text-gray-500">{timeAgo(doc.updatedAt)}</p>
-                  </div>
+        {loadingDocs ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-60 bg-white border border-outline rounded-3xl animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="text-6xl mb-6 opacity-40">📄</div>
+            <p className="text-2xl font-medium text-ink mb-2">
+              {query ? "No matching documents" : "No documents yet"}
+            </p>
+            <p className="text-gray-500 mb-8 max-w-xs">
+              {query ? "Try different keywords" : "Create your first document to begin"}
+            </p>
+            {!query && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-2xl font-semibold transition-all"
+              >
+                Create New Document
+              </button>
+            )}
+          </div>
+        ) : view === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filtered.map((doc) => (
+              <div
+                key={doc.id}
+                onClick={() => router.push(`/documents/${doc.id}`)}
+                className="group bg-white border border-outline hover:border-primary/30 rounded-3xl overflow-hidden transition-all hover:shadow-xl cursor-pointer"
+              >
+                <div className="h-56 bg-surface-alt flex items-center justify-center relative">
+                  <FileIcon />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(doc.id);
+                    }}
+                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 bg-white p-2 rounded-xl shadow hover:bg-red-50 hover:text-red-600 transition-all"
+                  >
+                    <TrashIcon />
+                  </button>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white border border-outline rounded-3xl overflow-hidden">
-              <div className="grid grid-cols-12 px-8 py-4 text-xs font-medium text-gray-500 border-b">
-                <div className="col-span-6">Name</div>
-                <div className="col-span-3">Last modified</div>
-                <div className="col-span-2">Owner</div>
-                <div className="col-span-1"></div>
+                <div className="p-5">
+                  <p className="font-medium text-ink line-clamp-2 mb-1.5">{doc.title}</p>
+                  <p className="text-xs text-gray-500">{timeAgo(doc.updatedAt)}</p>
+                </div>
               </div>
-              {filtered.map((doc) => (
-                <div
-                  key={doc.id}
-                  onClick={() => router.push(`/documents/${doc.id}`)}
-                  className="grid grid-cols-12 px-8 py-5 items-center border-b hover:bg-surface-alt cursor-pointer group"
-                >
-                  <div className="col-span-6 flex items-center gap-4">
-                    <FileIcon />
-                    <span className="font-medium text-ink">{doc.title}</span>
-                  </div>
-                  <div className="col-span-3 text-sm text-gray-500">{timeAgo(doc.updatedAt)}</div>
-                  <div className="col-span-2 text-sm text-gray-500">
-                    {doc.ownerId === user?.id ? "You" : "Shared"}
-                  </div>
-                  <div className="col-span-1 flex justify-end">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(doc.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-outline rounded-3xl overflow-hidden">
+            <div className="grid grid-cols-12 px-8 py-4 text-xs font-medium text-gray-500 border-b">
+              <div className="col-span-6">Name</div>
+              <div className="col-span-3">Last modified</div>
+              <div className="col-span-2">Owner</div>
+              <div className="col-span-1"></div>
             </div>
-          )}
-        </main>
-      </div>
+            {filtered.map((doc) => (
+              <div
+                key={doc.id}
+                onClick={() => router.push(`/documents/${doc.id}`)}
+                className="grid grid-cols-12 px-8 py-5 items-center border-b hover:bg-surface-alt cursor-pointer group"
+              >
+                <div className="col-span-6 flex items-center gap-4">
+                  <FileIcon />
+                  <span className="font-medium text-ink">{doc.title}</span>
+                </div>
+                <div className="col-span-3 text-sm text-gray-500">{timeAgo(doc.updatedAt)}</div>
+                <div className="col-span-2 text-sm text-gray-500">
+                  {doc.ownerId === user?.id ? "You" : "Shared"}
+                </div>
+                <div className="col-span-1 flex justify-end">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(doc.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
 
       <CreateDocumentModal
         open={showCreateModal}

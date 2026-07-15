@@ -8,5 +8,6 @@ const envSchema = zod_1.z.object({
     JWT_REFRESH_SECRET: zod_1.z.string(),
     ACCESS_TOKEN_TTL: zod_1.z.string().default("15m"),
     REFRESH_TOKEN_TTL_DAYS: zod_1.z.string().default("30"),
+    GROQ_API_KEY: zod_1.z.string(),
 });
 exports.env = envSchema.parse(process.env);

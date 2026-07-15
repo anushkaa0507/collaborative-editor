@@ -214,17 +214,17 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <footer className="bg-white border-t border-outline py-8">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-400">
-            Anushka • Fullstack Developer Assignment
-          </p>
-          <div className="flex gap-6 text-xs text-gray-400">
-            <a href="#" className="hover:underline hover:text-primary transition-colors">GitHub</a>
-            <a href="#" className="hover:underline hover:text-primary transition-colors">LinkedIn</a>
-          </div>
-        </div>
-      </footer>
+   <footer className="bg-white border-t border-outline py-8">
+  <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p className="text-xs text-gray-400">
+      Anushka Ramrakhya • Fullstack Developer Assignment
+    </p>
+    <div className="flex gap-6 text-xs text-gray-400">
+      <a href="https://github.com/anushkaa0507" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">GitHub</a>
+      <a href="https://www.linkedin.com/in/anushka-ramrakhya-58734b363/" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">LinkedIn</a>
+    </div>
+  </div>
+</footer>
     </div>
   );
 }

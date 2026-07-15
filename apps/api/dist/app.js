@@ -20,7 +20,7 @@ app.use("/api/documents", documents_routes_1.default);
 app.use("/api/documents/:id/collaborators", collaborators_routes_1.default);
 app.use("/api/documents/:id/sync", sync_routes_1.default);
 app.use("/api/documents/:id/snapshots", snapshots_routes_1.default);
-app.use("/api/documents/:id/assist", ai_routes_1.default);
+app.use("/api/documents/:id", ai_routes_1.default);
 app.get("/health", (_, res) => {
     res.status(200).json({
         status: "ok",

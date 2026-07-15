@@ -184,4 +184,4 @@ Coverage focuses on the sync module — concurrent update merging, state vector 
 
 ## Author
 
-Anushka — [GitHub](#) · [LinkedIn](#)
+Anushka Ramrakhya — [GitHub](https://github.com/anushkaa0507) · [LinkedIn](https://www.linkedin.com/in/anushka-ramrakhya-58734b363/)
