@@ -7,7 +7,7 @@ import documentRoutes from "./modules/documents/documents.routes";
 import collaboratorRoutes from "./modules/collaborators/collaborators.routes";
 import syncRoutes from "./modules/sync/sync.routes";
 import snapshotRoutes from "./modules/snapshots/snapshots.routes";
-import aiRoutes from "../dist/modules/ai/ai.routes";
+import aiRoutes from "./modules/ai/ai.routes";
 const app = express();
 
 app.use(cors());
