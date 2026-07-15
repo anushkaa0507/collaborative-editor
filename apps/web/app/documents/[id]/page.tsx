@@ -38,6 +38,15 @@ const AI_ACTIONS: { action: AiAction; label: string; description: string }[] = [
 
 const COLORS = ["#4B2FD6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
+function AiSparkleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.5c.35 0 .65.24.73.58l1.13 4.7 4.7 1.13a.75.75 0 0 1 0 1.46l-4.7 1.13-1.13 4.7a.75.75 0 0 1-1.46 0l-1.13-4.7-4.7-1.13a.75.75 0 0 1 0-1.46l4.7-1.13 1.13-4.7c.08-.34.38-.58.73-.58Z" />
+      <path d="M18.5 15c.24 0 .45.16.5.4l.35 1.5 1.5.35a.5.5 0 0 1 0 .98l-1.5.35-.35 1.5a.5.5 0 0 1-.98 0l-.35-1.5-1.5-.35a.5.5 0 0 1 0-.98l1.5-.35.35-1.5a.5.5 0 0 1 .48-.4Z" />
+    </svg>
+  );
+}
+
 export default function DocumentEditorPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -292,7 +301,7 @@ export default function DocumentEditorPage() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <header className="h-16 border-b border-outline bg-white flex items-center px-8 gap-6 z-50 sticky top-0">
+      <header className="h-16 border-b border-outline bg-white flex items-center px-8 gap-6 z-40 sticky top-0">
         <button onClick={() => router.push("/documents")} className="text-gray-400 hover:text-ink text-xl">
           ←
         </button>
@@ -437,11 +446,19 @@ export default function DocumentEditorPage() {
 
       {aiResult && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[90] p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-ink">
-                {AI_ACTIONS.find((a) => a.action === aiResult.action)?.label}
-              </h3>
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-outline">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <AiSparkleIcon />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-ink">
+                    {AI_ACTIONS.find((a) => a.action === aiResult.action)?.label}
+                  </h3>
+                  <p className="text-xs text-gray-500">AI generated result</p>
+                </div>
+              </div>
               <button
                 onClick={() => setAiResult(null)}
                 className="text-gray-400 hover:text-ink text-2xl leading-none"
@@ -449,13 +466,17 @@ export default function DocumentEditorPage() {
                 ×
               </button>
             </div>
-            <div className="flex-1 overflow-auto border border-outline rounded-2xl p-5 text-sm text-gray-700 whitespace-pre-wrap mb-6">
-              {aiResult.text}
+
+            <div className="flex-1 overflow-auto px-8 py-6">
+              <div className="bg-surface-alt rounded-2xl px-6 py-5 text-sm text-ink whitespace-pre-wrap leading-relaxed">
+                {aiResult.text}
+              </div>
             </div>
-            <div className="flex gap-3">
+
+            <div className="flex gap-3 px-8 py-6 border-t border-outline">
               <button
                 onClick={() => setAiResult(null)}
-                className="flex-1 py-3 border border-outline rounded-2xl font-medium hover:bg-surface-alt"
+                className="flex-1 py-3 border border-outline rounded-2xl font-medium hover:bg-surface-alt transition-all"
               >
                 Discard
               </button>
@@ -469,7 +490,7 @@ export default function DocumentEditorPage() {
               )}
               <button
                 onClick={() => applyAiResult("replace")}
-                className="flex-1 py-3 bg-primary hover:bg-primary-dark text-white rounded-2xl font-semibold"
+                className="flex-1 py-3 bg-primary hover:bg-primary-dark text-white rounded-2xl font-semibold transition-all"
               >
                 Replace document
               </button>

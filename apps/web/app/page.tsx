@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth/auth-context";
+import { DocIcon } from "@/components/ui/doc-icon";
 
 type Mode = "signin" | "signup";
 
@@ -58,21 +59,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <main className="pt-16 min-h-screen flex items-center bg-gradient-to-br from-surface via-surface-alt to-white overflow-hidden">
-        <div className="container mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="relative space-y-6 max-w-xl">
-              <div className="pointer-events-none absolute -top-24 -left-16 w-[460px] h-[460px] opacity-[0.55] animate-float animate-breathe select-none -z-10">
-                <Image
-                  src="/screen.png"
-                  alt=""
-                  fill
-                  className="object-contain brightness-[0.7] saturate-[0.9] contrast-[1.1] drop-shadow-[0_20px_40px_rgba(75,47,214,0.35)]"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-ink/25 via-primary/15 to-transparent" />
-              </div>
+      <main className="min-h-screen flex flex-col bg-gradient-to-br from-surface via-surface-alt to-white overflow-hidden">
+        <div className="container mx-auto px-6 pt-8">
+          <div className="flex items-center gap-2">
+            <DocIcon className="w-8 h-8 text-primary" />
+            <span className="text-primary font-extrabold text-xl tracking-tight">CollabDoc</span>
+          </div>
+        </div>
 
+        <div className="flex-1 flex items-center container mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
+            <div className="space-y-6 max-w-xl">
               <div className="inline-flex items-center gap-2 bg-surface-alt text-primary px-4 py-1 rounded-full border border-primary/10">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-xs uppercase font-bold tracking-widest">
@@ -90,6 +87,17 @@ export default function LandingPage() {
                 conflict resolution, granular version history, and real-time
                 sync that never blocks your UI — even offline.
               </p>
+
+              <div className="rounded-3xl border border-outline bg-white shadow-xl shadow-primary/5 overflow-hidden">
+                <Image
+                  src="/screen.png"
+                  alt="CollabDoc editor preview"
+                  width={900}
+                  height={600}
+                  className="w-full h-auto object-contain"
+                  priority
+                />
+              </div>
 
               <div className="flex items-center gap-8 pt-6 border-t border-outline">
                 <div>
@@ -217,8 +225,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
-   
     </div>
   );
 }

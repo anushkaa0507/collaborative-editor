@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { authService } from "@/lib/api/auth.service";
+import { readUserCache, writeUserCache, clearUserCache } from "@/app/documents/documents-cache";
 
 type User = {
   id: string;
@@ -20,6 +21,7 @@ type AuthContextValue = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isOfflineSession: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -29,8 +31,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  // Starts true so pages can wait for the session check before rendering.
   const [isLoading, setIsLoading] = useState(true);
+  const [isOfflineSession, setIsOfflineSession] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,12 +47,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const data = await authService.me();
-        if (!cancelled) setUser(data);
-      } catch {
-        // Token is invalid/expired - clear it so the login page is reachable again.
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        if (!cancelled) setUser(null);
+        if (!cancelled) {
+          setUser(data);
+          setIsOfflineSession(false);
+          writeUserCache(data);
+        }
+      } catch (err: any) {
+        const isNetworkError = !err?.response;
+        const cached = readUserCache();
+        if (isNetworkError && cached) {
+          if (!cancelled) {
+            setUser(cached as User);
+            setIsOfflineSession(true);
+          }
+        } else {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          clearUserCache();
+          if (!cancelled) setUser(null);
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -64,17 +79,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, password: string) {
     const data = await authService.login(email, password);
-    setUser((data.user as User) ?? data);
+    const nextUser = (data.user as User) ?? data;
+    setUser(nextUser);
+    setIsOfflineSession(false);
+    writeUserCache(nextUser);
   }
 
   async function register(name: string, email: string, password: string) {
     const data = await authService.register(name, email, password);
-    setUser((data.user as User) ?? data);
+    const nextUser = (data.user as User) ?? data;
+    setUser(nextUser);
+    setIsOfflineSession(false);
+    writeUserCache(nextUser);
   }
 
   async function logout() {
-    await authService.logout();
+    try {
+      await authService.logout();
+    } catch {}
     setUser(null);
+    setIsOfflineSession(false);
+    clearUserCache();
   }
 
   return (
@@ -83,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        isOfflineSession,
         login,
         register,
         logout,
