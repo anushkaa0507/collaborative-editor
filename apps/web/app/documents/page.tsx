@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { documentsService } from "@/lib/api/documents-service";
+import { useToast } from "@/components/ui/toast";
+import { CreateDocumentModal } from "@/components/ui/create-document-modal";
+import { readDocumentsListCache, writeDocumentsListCache } from "@/app/documents/documents-cache";
 
 type DocumentSummary = {
   id: string;
@@ -87,15 +90,16 @@ function TrashIcon() {
 export default function DocumentsPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<ViewMode>("grid");
+  const [isOnline, setIsOnline] = useState(true);
+  const [usingCache, setUsingCache] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -104,51 +108,75 @@ export default function DocumentsPage() {
   }, [isLoading, isAuthenticated, router]);
 
   useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isAuthenticated) return;
     let active = true;
     setLoadingDocs(true);
     documentsService
       .list()
       .then((data) => {
-        if (active) setDocuments(data);
+        if (!active) return;
+        setDocuments(data);
+        setUsingCache(false);
+        writeDocumentsListCache(data);
       })
       .catch(() => {
-        if (active) setError("Could not load your documents");
+        if (!active) return;
+        const cached = readDocumentsListCache();
+        if (cached.length > 0) {
+          setDocuments(cached);
+          setUsingCache(true);
+        } else {
+          showError("Could not load your documents");
+        }
       })
       .finally(() => {
         if (active) setLoadingDocs(false);
       });
-    return () => { active = false; };
-  }, [isAuthenticated]);
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, showError]);
 
   const filtered = useMemo(
     () => documents.filter((doc) => doc.title.toLowerCase().includes(query.toLowerCase())),
     [documents, query]
   );
 
-  async function handleCreate(e: FormEvent) {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
+  async function handleCreate(title: string, description: string) {
     setCreating(true);
-    setError(null);
     try {
-      const doc = await documentsService.create(newTitle.trim());
+      const doc = await documentsService.create(title, description);
+      showSuccess("Document created");
+      setShowCreateModal(false);
       router.push(`/documents/${doc.id}`);
     } catch {
-      setError("Could not create the document");
+      showError("Could not create the document");
     } finally {
       setCreating(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this document?")) return;
+    const target = documents.find((d) => d.id === id);
     setDocuments((prev) => prev.filter((doc) => doc.id !== id));
     try {
       await documentsService.remove(id);
+      showSuccess("Document deleted");
     } catch {
-      setError("Could not delete the document");
-      setDocuments((prev) => [...prev, documents.find(d => d.id === id)!].filter(Boolean));
+      showError("Could not delete the document");
+      if (target) setDocuments((prev) => [...prev, target]);
     }
   }
 
@@ -164,7 +192,6 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-surface flex">
-      {/* Sidebar */}
       <aside className="w-72 shrink-0 border-r border-outline bg-white px-6 py-8 hidden lg:flex flex-col">
         <div className="mb-10 flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">C</div>
@@ -172,7 +199,7 @@ export default function DocumentsPage() {
         </div>
 
         <button
-          onClick={() => setShowCreateForm(true)}
+          onClick={() => setShowCreateModal(true)}
           className="flex items-center justify-center gap-3 bg-primary hover:bg-primary-dark text-white rounded-2xl py-4 font-semibold transition-all active:scale-[0.985] w-full mb-8"
         >
           <PlusIcon /> New Document
@@ -185,8 +212,8 @@ export default function DocumentsPage() {
           </div>
         </nav>
       </aside>
+
       <div className="flex-1 flex flex-col">
-        {/* Top Header - Always Visible */}
         <header className="h-16 border-b border-outline bg-white px-8 flex items-center gap-6 z-10">
           <div className="lg:hidden flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-white font-bold">C</div>
@@ -206,6 +233,11 @@ export default function DocumentsPage() {
                 className="w-full bg-surface-alt border border-outline focus:border-primary rounded-3xl pl-12 py-3 text-sm focus:outline-none transition-all"
               />
             </div>
+          </div>
+
+          <div className={`flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
+            {isOnline ? "Online" : "Offline"}
           </div>
 
           <div className="flex items-center gap-2 bg-surface-alt rounded-3xl p-1">
@@ -232,14 +264,17 @@ export default function DocumentsPage() {
           </button>
         </header>
 
-        {/* Main Area */}
         <main className="flex-1 p-8 overflow-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-semibold text-ink">My Documents</h2>
             <div className="text-sm text-gray-500">{filtered.length} documents</div>
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-600 px-5 py-3 rounded-2xl mb-6">{error}</div>}
+          {usingCache && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-3 rounded-2xl mb-6 text-sm">
+              You're offline — showing the last saved copy of your documents. New changes will sync once you're back online.
+            </div>
+          )}
 
           {loadingDocs ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -258,7 +293,7 @@ export default function DocumentsPage() {
               </p>
               {!query && (
                 <button
-                  onClick={() => setShowCreateForm(true)}
+                  onClick={() => setShowCreateModal(true)}
                   className="bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-2xl font-semibold transition-all"
                 >
                   Create New Document
@@ -276,7 +311,10 @@ export default function DocumentsPage() {
                   <div className="h-56 bg-surface-alt flex items-center justify-center relative">
                     <FileIcon />
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(doc.id);
+                      }}
                       className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 bg-white p-2 rounded-xl shadow hover:bg-red-50 hover:text-red-600 transition-all"
                     >
                       <TrashIcon />
@@ -313,7 +351,10 @@ export default function DocumentsPage() {
                   </div>
                   <div className="col-span-1 flex justify-end">
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(doc.id);
+                      }}
                       className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
                     >
                       <TrashIcon />
@@ -325,39 +366,13 @@ export default function DocumentsPage() {
           )}
         </main>
       </div>
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-6 text-ink">New Document</h3>
-            <form onSubmit={handleCreate}>
-              <input
-                type="text"
-                autoFocus
-                placeholder="Document title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full border border-outline focus:border-primary rounded-2xl px-5 py-4 text-lg mb-6 outline-none"
-              />
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => { setShowCreateForm(false); setNewTitle(""); }}
-                  className="flex-1 py-4 border border-outline rounded-2xl font-medium hover:bg-surface-alt"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating || !newTitle.trim()}
-                  className="flex-1 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-semibold disabled:opacity-50 transition-all"
-                >
-                  {creating ? "Creating..." : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+      <CreateDocumentModal
+        open={showCreateModal}
+        creating={creating}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleCreate}
+      />
     </div>
   );
 }

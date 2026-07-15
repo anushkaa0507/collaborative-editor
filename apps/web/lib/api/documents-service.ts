@@ -6,8 +6,8 @@ export const documentsService = {
     return data;
   },
 
-  async create(title: string) {
-    const { data } = await apiClient.post("/documents", { title });
+  async create(title: string, description?: string) {
+    const { data } = await apiClient.post("/documents", { title, description });
     return data;
   },
 
@@ -27,33 +27,15 @@ export const documentsService = {
 };
 
 export const syncService = {
-   async push(docId: string, payload: { 
-    clientId: string; 
-    seq: number; 
-    update: string 
-  }) {
-    try {
-      const { data } = await apiClient.post(`/documents/${docId}/sync/push`, payload);
-      return data;
-    } catch (error: any) {
-      console.error("Sync Push Failed:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-      throw error;
-    }
+  async push(docId: string, payload: { clientId: string; seq: number; update: string }) {
+    const { data } = await apiClient.post(`/documents/${docId}/sync/push`, payload);
+    return data;
   },
 
   async pull(docId: string, stateVector?: string) {
-    try {
-      const { data } = await apiClient.get(`/documents/${docId}/sync/pull`, {
-        params: { stateVector },
-      });
-      return data;
-    } catch (error: any) {
-      console.error("Sync Pull Failed:", error.response?.data || error.message);
-      throw error;
-    }
+    const { data } = await apiClient.get(`/documents/${docId}/sync/pull`, {
+      params: { stateVector },
+    });
+    return data;
   },
 };
