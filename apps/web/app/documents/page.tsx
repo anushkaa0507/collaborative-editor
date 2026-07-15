@@ -190,8 +190,8 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="h-16 border-b border-outline bg-white px-8 flex items-center gap-6 sticky top-0 z-30">
-        <div className="flex-1 max-w-2xl">
+      <header className="border-b border-outline bg-white px-4 sm:px-8 py-3 sm:py-0 sm:h-16 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6 sticky top-0 z-30">
+        <div className="flex-1 sm:max-w-2xl order-1">
           <div className="relative">
             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
               <SearchIcon />
@@ -206,57 +206,59 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        <div className={`flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-          <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
-          {isOnline ? "Online" : "Offline"}
-        </div>
+        <div className="flex items-center justify-between sm:justify-start gap-3 order-2">
+          <div className={`flex items-center gap-1.5 px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
+            {isOnline ? "Online" : "Offline"}
+          </div>
 
-        <div className="flex items-center gap-2 bg-surface-alt rounded-3xl p-1">
-          <button
-            onClick={() => setView("grid")}
-            className={`p-2.5 rounded-2xl transition-all ${view === "grid" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
-          >
-            <GridIcon />
-          </button>
-          <button
-            onClick={() => setView("list")}
-            className={`p-2.5 rounded-2xl transition-all ${view === "list" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
-          >
-            <ListIcon />
-          </button>
+          <div className="flex items-center gap-2 bg-surface-alt rounded-3xl p-1">
+            <button
+              onClick={() => setView("grid")}
+              className={`p-2.5 rounded-2xl transition-all ${view === "grid" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
+            >
+              <GridIcon />
+            </button>
+            <button
+              onClick={() => setView("list")}
+              className={`p-2.5 rounded-2xl transition-all ${view === "list" ? "bg-white shadow text-primary" : "text-gray-400 hover:text-ink"}`}
+            >
+              <ListIcon />
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-semibold text-ink">My Documents</h2>
+      <main className="p-4 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-ink">My Documents</h2>
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-500">{filtered.length} documents</div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white rounded-2xl px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.985]"
+              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white rounded-2xl px-4 sm:px-5 py-2.5 text-sm font-semibold transition-all active:scale-[0.985]"
             >
-              <PlusIcon /> New Document
+              <PlusIcon /> <span className="hidden xs:inline">New Document</span><span className="xs:hidden">New</span>
             </button>
           </div>
         </div>
 
         {usingCache && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-3 rounded-2xl mb-6 text-sm">
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 sm:px-5 py-3 rounded-2xl mb-6 text-sm">
             You're offline — showing the last saved copy of your documents. New changes will sync once you're back online.
           </div>
         )}
 
         {loadingDocs ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="h-60 bg-white border border-outline rounded-3xl animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-center px-4">
             <div className="text-6xl mb-6 opacity-40">📄</div>
-            <p className="text-2xl font-medium text-ink mb-2">
+            <p className="text-xl sm:text-2xl font-medium text-ink mb-2">
               {query ? "No matching documents" : "No documents yet"}
             </p>
             <p className="text-gray-500 mb-8 max-w-xs">
@@ -272,26 +274,26 @@ export default function DocumentsPage() {
             )}
           </div>
         ) : view === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filtered.map((doc) => (
               <div
                 key={doc.id}
                 onClick={() => router.push(`/documents/${doc.id}`)}
                 className="group bg-white border border-outline hover:border-primary/30 rounded-3xl overflow-hidden transition-all hover:shadow-xl cursor-pointer"
               >
-                <div className="h-56 bg-surface-alt flex items-center justify-center relative">
+                <div className="h-44 sm:h-56 bg-surface-alt flex items-center justify-center relative">
                   <FileIcon />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(doc.id);
                     }}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 bg-white p-2 rounded-xl shadow hover:bg-red-50 hover:text-red-600 transition-all"
+                    className="absolute top-4 right-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 bg-white p-2 rounded-xl shadow hover:bg-red-50 hover:text-red-600 transition-all"
                   >
                     <TrashIcon />
                   </button>
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <p className="font-medium text-ink line-clamp-2 mb-1.5">{doc.title}</p>
                   <p className="text-xs text-gray-500">{timeAgo(doc.updatedAt)}</p>
                 </div>
@@ -300,7 +302,7 @@ export default function DocumentsPage() {
           </div>
         ) : (
           <div className="bg-white border border-outline rounded-3xl overflow-hidden">
-            <div className="grid grid-cols-12 px-8 py-4 text-xs font-medium text-gray-500 border-b">
+            <div className="hidden sm:grid grid-cols-12 px-8 py-4 text-xs font-medium text-gray-500 border-b">
               <div className="col-span-6">Name</div>
               <div className="col-span-3">Last modified</div>
               <div className="col-span-2">Owner</div>
@@ -310,23 +312,26 @@ export default function DocumentsPage() {
               <div
                 key={doc.id}
                 onClick={() => router.push(`/documents/${doc.id}`)}
-                className="grid grid-cols-12 px-8 py-5 items-center border-b hover:bg-surface-alt cursor-pointer group"
+                className="flex sm:grid sm:grid-cols-12 items-center px-4 sm:px-8 py-4 sm:py-5 border-b hover:bg-surface-alt cursor-pointer group gap-3 sm:gap-0"
               >
-                <div className="col-span-6 flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 sm:col-span-6">
                   <FileIcon />
-                  <span className="font-medium text-ink">{doc.title}</span>
+                  <div className="min-w-0">
+                    <span className="font-medium text-ink block truncate">{doc.title}</span>
+                    <span className="sm:hidden text-xs text-gray-500">{timeAgo(doc.updatedAt)}</span>
+                  </div>
                 </div>
-                <div className="col-span-3 text-sm text-gray-500">{timeAgo(doc.updatedAt)}</div>
-                <div className="col-span-2 text-sm text-gray-500">
+                <div className="hidden sm:block sm:col-span-3 text-sm text-gray-500">{timeAgo(doc.updatedAt)}</div>
+                <div className="hidden sm:block sm:col-span-2 text-sm text-gray-500">
                   {doc.ownerId === user?.id ? "You" : "Shared"}
                 </div>
-                <div className="col-span-1 flex justify-end">
+                <div className="sm:col-span-1 flex justify-end shrink-0">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(doc.id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                    className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
                   >
                     <TrashIcon />
                   </button>

@@ -288,7 +288,7 @@ export default function DocumentEditorPage() {
 
   if (error || !doc) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-6 px-4 text-center">
         <p className="text-xl text-ink">{error || "Document not found"}</p>
         <button onClick={() => router.push("/documents")} className="text-primary font-semibold hover:underline">
           ← Back to Documents
@@ -301,7 +301,7 @@ export default function DocumentEditorPage() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <header className="h-16 border-b border-outline bg-white flex items-center px-8 gap-6 z-40 sticky top-0">
+      <header className="border-b border-outline bg-white flex flex-wrap items-center px-4 sm:px-8 py-3 sm:py-0 sm:h-16 gap-3 sm:gap-6 z-40 sticky top-0">
         <button onClick={() => router.push("/documents")} className="text-gray-400 hover:text-ink text-xl">
           ←
         </button>
@@ -312,12 +312,12 @@ export default function DocumentEditorPage() {
           disabled={doc.role === "VIEWER"}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
-          className="flex-1 text-4xl font-bold bg-transparent focus:outline-none placeholder:text-gray-400"
+          className="hidden sm:block flex-1 text-4xl font-bold bg-transparent focus:outline-none placeholder:text-gray-400 min-w-0"
           placeholder="Untitled Document"
         />
 
-        <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+          <div className={`flex items-center gap-1.5 px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
             <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
             {isOnline ? "Online" : "Offline"}
           </div>
@@ -328,7 +328,7 @@ export default function DocumentEditorPage() {
             <button
               onClick={handleManualSave}
               disabled={isSaving || !isOnline}
-              className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+              className="bg-primary hover:bg-primary-dark text-white px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold disabled:opacity-50 transition-all"
             >
               Update changes
             </button>
@@ -339,7 +339,7 @@ export default function DocumentEditorPage() {
               <button
                 onClick={() => setAiMenuOpen((v) => !v)}
                 disabled={aiDisabled}
-                className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 {aiLoading ? "Thinking..." : "✨ AI Assist"}
               </button>
@@ -366,47 +366,47 @@ export default function DocumentEditorPage() {
 
           <button
             onClick={() => setShowShareModal(true)}
-            className="border border-outline hover:bg-surface-alt px-5 py-2 rounded-xl text-sm font-semibold transition-all"
+            className="border border-outline hover:bg-surface-alt px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all"
           >
             Share
           </button>
 
           <button
             onClick={handleDownload}
-            className="border border-outline hover:bg-surface-alt px-5 py-2 rounded-xl text-sm font-semibold transition-all"
+            className="border border-outline hover:bg-surface-alt px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all"
           >
             Download
           </button>
 
           <button
             onClick={() => router.push(`/documents/${doc.id}/history`)}
-            className="border border-outline hover:bg-surface-alt px-5 py-2 rounded-xl text-sm font-semibold transition-all"
+            className="border border-outline hover:bg-surface-alt px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all"
           >
             History
           </button>
 
-          <div className="px-5 py-1.5 bg-surface-alt text-xs font-bold uppercase tracking-widest rounded-2xl text-primary">
+          <div className="px-3 sm:px-5 py-1.5 bg-surface-alt text-[10px] sm:text-xs font-bold uppercase tracking-widest rounded-2xl text-primary">
             {doc.role}
           </div>
         </div>
       </header>
 
       {offlineCopy && (
-        <div className="bg-amber-50 border-b border-amber-200 text-amber-700 px-8 py-2 text-sm text-center">
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-700 px-4 sm:px-8 py-2 text-sm text-center">
           You're viewing an offline copy from your last visit. Changes will sync once you're back online.
         </div>
       )}
 
-      <main className="flex-1 p-8 flex justify-center overflow-auto">
+      <main className="flex-1 p-4 sm:p-8 flex justify-center overflow-auto">
         <div className="w-full max-w-4xl">
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <input
               type="text"
               value={title}
               disabled={doc.role === "VIEWER"}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleTitleBlur}
-              className="w-full text-5xl font-bold bg-transparent focus:outline-none border-b-2 border-transparent focus:border-primary placeholder:text-gray-300"
+              className="w-full text-3xl sm:text-5xl font-bold bg-transparent focus:outline-none border-b-2 border-transparent focus:border-primary placeholder:text-gray-300"
               placeholder="Untitled Document"
             />
             <p className="text-sm text-gray-500 mt-1">
@@ -414,7 +414,7 @@ export default function DocumentEditorPage() {
             </p>
           </div>
 
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 flex-wrap">
             {presences.map((p, i) => (
               <div key={i} className="flex items-center gap-2 bg-white border border-outline rounded-2xl px-4 py-1.5 text-sm">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: p.color }}>
@@ -426,11 +426,11 @@ export default function DocumentEditorPage() {
             ))}
           </div>
 
-          <div className="bg-white border border-outline rounded-3xl shadow-sm min-h-[700px] p-12">
+          <div className="bg-white border border-outline rounded-3xl shadow-sm min-h-[500px] sm:min-h-[700px] p-6 sm:p-12">
             <div
               ref={editorRef}
               contentEditable={doc.role !== "VIEWER"}
-              className="min-h-[580px] focus:outline-none text-[17px] leading-[1.85] text-gray-700 prose prose-neutral max-w-none"
+              className="min-h-[420px] sm:min-h-[580px] focus:outline-none text-[16px] sm:text-[17px] leading-[1.85] text-gray-700 prose prose-neutral max-w-none"
               style={{ whiteSpace: "pre-wrap" }}
               onInput={handleEditorInput}
               onBlur={handleEditorInput}
@@ -439,7 +439,7 @@ export default function DocumentEditorPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-6 right-6 bg-white border border-outline rounded-2xl px-5 py-2.5 text-xs text-gray-500 shadow flex items-center gap-2 z-50">
+      <div className="hidden sm:flex fixed bottom-6 right-6 bg-white border border-outline rounded-2xl px-5 py-2.5 text-xs text-gray-500 shadow items-center gap-2 z-50">
         <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
         Local-first • Auto-save
       </div>
@@ -447,9 +447,9 @@ export default function DocumentEditorPage() {
       {aiResult && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[90] p-4">
           <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-outline">
+            <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-b border-outline">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <AiSparkleIcon />
                 </div>
                 <div>
@@ -467,13 +467,13 @@ export default function DocumentEditorPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-auto px-8 py-6">
-              <div className="bg-surface-alt rounded-2xl px-6 py-5 text-sm text-ink whitespace-pre-wrap leading-relaxed">
+            <div className="flex-1 overflow-auto px-4 sm:px-8 py-6">
+              <div className="bg-surface-alt rounded-2xl px-4 sm:px-6 py-5 text-sm text-ink whitespace-pre-wrap leading-relaxed">
                 {aiResult.text}
               </div>
             </div>
 
-            <div className="flex gap-3 px-8 py-6 border-t border-outline">
+            <div className="flex flex-col sm:flex-row gap-3 px-4 sm:px-8 py-4 sm:py-6 border-t border-outline">
               <button
                 onClick={() => setAiResult(null)}
                 className="flex-1 py-3 border border-outline rounded-2xl font-medium hover:bg-surface-alt transition-all"

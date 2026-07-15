@@ -102,18 +102,18 @@ export default function DocumentHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface p-8">
+    <div className="min-h-screen bg-surface p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-ink">Version History</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-ink">Version History</h1>
             <p className="text-gray-500">Save checkpoints and restore any previous version</p>
           </div>
           <button
             onClick={() => setShowLabelPrompt(true)}
             disabled={role === "VIEWER"}
             title={role === "VIEWER" ? "Viewers can't save new versions" : undefined}
-            className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed self-start sm:self-auto"
           >
             Save Current Version
           </button>
@@ -121,12 +121,12 @@ export default function DocumentHistoryPage() {
 
         <div className="bg-white rounded-3xl border border-outline overflow-hidden">
           {snapshots.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
+            <div className="p-8 sm:p-12 text-center text-gray-500">
               No snapshots yet. Save a version to create your first checkpoint.
             </div>
           ) : (
             snapshots.map((snap, i) => (
-              <div key={snap.id} className="border-b border-outline last:border-none p-6 flex items-center justify-between hover:bg-surface-alt">
+              <div key={snap.id} className="border-b border-outline last:border-none p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-alt">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{snap.versionLabel}</p>
@@ -145,7 +145,7 @@ export default function DocumentHistoryPage() {
                   onClick={() => setPendingRestoreId(snap.id)}
                   disabled={restoring === snap.id || role === "VIEWER"}
                   title={role === "VIEWER" ? "Viewers can't restore versions" : undefined}
-                  className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary"
+                  className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-primary self-start sm:self-auto"
                 >
                   {restoring === snap.id ? "Restoring..." : "Restore"}
                 </button>
@@ -164,7 +164,7 @@ export default function DocumentHistoryPage() {
 
       {showLabelPrompt && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[90] p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-sm">
             <h3 className="text-lg font-semibold text-ink mb-2">Save current version</h3>
             <p className="text-sm text-gray-500 mb-4">
               This saves a snapshot of the document exactly as it is right now.
