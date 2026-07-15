@@ -60,15 +60,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-surface">
       <main className="min-h-screen flex flex-col bg-gradient-to-br from-surface via-surface-alt to-white overflow-hidden">
-        <div className="container mx-auto px-6 pt-8">
+        <div className="container mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
           <div className="flex items-center gap-2">
-            <DocIcon className="w-8 h-8 text-primary" />
-            <span className="text-primary font-extrabold text-xl tracking-tight">CollabDoc</span>
+            <DocIcon className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+            <span className="text-primary font-extrabold text-lg sm:text-xl tracking-tight">CollabDoc</span>
           </div>
         </div>
 
-        <div className="flex-1 flex items-center container mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
+        <div className="flex-1 flex items-center container mx-auto px-4 sm:px-6 py-10 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center w-full">
             <div className="space-y-6 max-w-xl">
               <div className="inline-flex items-center gap-2 bg-surface-alt text-primary px-4 py-1 rounded-full border border-primary/10">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -77,39 +77,60 @@ export default function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="text-5xl font-extrabold tracking-tight leading-tight text-ink">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-ink">
                 Write anywhere. <span className="text-primary italic">Sync</span>{" "}
                 everywhere.
               </h1>
 
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 A local-first, collaborative document editor with deterministic
                 conflict resolution, granular version history, and real-time
                 sync that never blocks your UI — even offline.
               </p>
 
-              <div className="rounded-3xl border border-outline bg-white shadow-xl shadow-primary/5 overflow-hidden">
-                <Image
-                  src="/screen.png"
-                  alt="CollabDoc editor preview"
-                  width={900}
-                  height={600}
-                  className="w-full h-auto object-contain"
-                  priority
-                />
-              </div>
+           <div className="relative">
+  <div className="pointer-events-none absolute -inset-x-8 -inset-y-10 -z-10">
+    <div className="absolute top-0 left-4 w-40 h-40 rounded-full bg-primary/20 blur-3xl animate-breathe" />
+    <div
+      className="absolute bottom-4 right-0 w-56 h-56 rounded-full bg-primary/15 blur-3xl animate-breathe"
+      style={{ animationDelay: "1.5s" }}
+    />
+    <div
+      className="absolute top-10 right-10 w-6 h-6 rounded-full bg-primary/30 blur-sm animate-float"
+      style={{ animationDelay: "0.4s" }}
+    />
+    <div
+      className="absolute bottom-16 left-2 w-4 h-4 rounded-full bg-primary/25 blur-sm animate-float"
+      style={{ animationDelay: "2.2s" }}
+    />
+    <div
+      className="absolute top-1/2 -left-4 w-3 h-3 rounded-full bg-primary/20 blur-sm animate-float"
+      style={{ animationDelay: "3.6s" }}
+    />
+  </div>
 
-              <div className="flex items-center gap-8 pt-6 border-t border-outline">
+  <div className="rounded-3xl border border-outline bg-white shadow-xl shadow-primary/5 overflow-hidden animate-float">
+    <Image
+      src="/screen.png"
+      alt="CollabDoc editor preview"
+      width={900}
+      height={600}
+      className="w-full h-auto object-contain"
+      priority
+    />
+  </div>
+</div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 sm:gap-x-8 pt-6 border-t border-outline">
                 <div>
                   <p className="text-primary font-bold text-sm">100%</p>
                   <p className="text-gray-500 text-xs">Offline First</p>
                 </div>
-                <div className="w-px h-8 bg-outline" />
+                <div className="w-px h-8 bg-outline hidden sm:block" />
                 <div>
                   <p className="text-primary font-bold text-sm">Auto</p>
                   <p className="text-gray-500 text-xs">Conflict Resolution</p>
                 </div>
-                <div className="w-px h-8 bg-outline" />
+                <div className="w-px h-8 bg-outline hidden sm:block" />
                 <div>
                   <p className="text-primary font-bold text-sm">Full</p>
                   <p className="text-gray-500 text-xs">Version Timeline</p>
@@ -128,7 +149,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className={`flex-1 py-5 font-semibold text-center transition-colors ${
+                    className={`flex-1 py-4 sm:py-5 font-semibold text-center transition-colors ${
                       mode === "signin" ? "text-primary" : "text-gray-400 hover:text-ink"
                     }`}
                   >
@@ -137,7 +158,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signup")}
-                    className={`flex-1 py-5 font-semibold text-center transition-colors ${
+                    className={`flex-1 py-4 sm:py-5 font-semibold text-center transition-colors ${
                       mode === "signup" ? "text-primary" : "text-gray-400 hover:text-ink"
                     }`}
                   >
@@ -145,7 +166,7 @@ export default function LandingPage() {
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-10 space-y-6">
+                <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-5 sm:space-y-6">
                   {mode === "signup" && (
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Name</label>
@@ -214,17 +235,17 @@ export default function LandingPage() {
         </div>
       </main>
 
-   <footer className="bg-white border-t border-outline py-8">
-  <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-    <p className="text-xs text-gray-400">
-      Anushka Ramrakhya • Fullstack Developer Assignment
-    </p>
-    <div className="flex gap-6 text-xs text-gray-400">
-      <a href="https://github.com/anushkaa0507" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">GitHub</a>
-      <a href="https://www.linkedin.com/in/anushka-ramrakhya-58734b363/" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">LinkedIn</a>
-    </div>
-  </div>
-</footer>
+      <footer className="bg-white border-t border-outline py-8">
+        <div className="container mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <p className="text-xs text-gray-400">
+            Anushka Ramrakhya • Fullstack Developer Assignment
+          </p>
+          <div className="flex gap-6 text-xs text-gray-400">
+            <a href="https://github.com/anushkaa0507" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">GitHub</a>
+            <a href="https://www.linkedin.com/in/anushka-ramrakhya-58734b363/" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -21,6 +21,8 @@ export function Sidebar() {
   const router = useRouter();
   const { isAuthenticated, user, logout } = useAuth();
 
+  if (pathname === "/") return null;
+
   const initial = user?.name
     ? user.name.charAt(0).toUpperCase()
     : user?.email
