@@ -28,6 +28,14 @@ type UserPresence = {
   lastActive: Date;
 };
 
+type AiAction = "summarize" | "fix_grammar" | "continue_writing";
+
+const AI_ACTIONS: { action: AiAction; label: string; description: string }[] = [
+  { action: "summarize", label: "Summarize", description: "3-5 bullet points" },
+  { action: "fix_grammar", label: "Fix grammar", description: "Corrects spelling & punctuation" },
+  { action: "continue_writing", label: "Continue writing", description: "Adds 2-3 new paragraphs" },
+];
+
 const COLORS = ["#4B2FD6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
 export default function DocumentEditorPage() {
@@ -46,6 +54,10 @@ export default function DocumentEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [presences, setPresences] = useState<UserPresence[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
+
+  const [aiMenuOpen, setAiMenuOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState<AiAction | null>(null);
+  const [aiResult, setAiResult] = useState<{ action: AiAction; text: string } | null>(null);
 
   const ydocRef = useRef<Y.Doc | null>(null);
   const ytextRef = useRef<Y.Text | null>(null);
@@ -210,6 +222,43 @@ export default function DocumentEditorPage() {
     showSuccess("Document downloaded");
   };
 
+  const runAiAction = async (action: AiAction) => {
+    setAiMenuOpen(false);
+    if (!doc || !ytextRef.current) return;
+    const text = ytextRef.current.toString();
+    if (!text.trim()) {
+      showError("Document is empty — write something first");
+      return;
+    }
+    setAiLoading(action);
+    try {
+      const { data } = await apiClient.post(`/documents/${doc.id}/assist`, { action, text });
+      setAiResult({ action, text: data.result });
+    } catch (err: any) {
+      showError(err.response?.data?.message || "AI assist failed");
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const applyAiResult = (mode: "replace" | "insert") => {
+    if (!aiResult || !ytextRef.current) return;
+    isUpdatingRef.current = true;
+    if (mode === "replace") {
+      const len = ytextRef.current.toString().length;
+      ytextRef.current.delete(0, len);
+      ytextRef.current.insert(0, aiResult.text);
+    } else {
+      const len = ytextRef.current.toString().length;
+      const separator = len > 0 ? "\n\n" : "";
+      ytextRef.current.insert(len, `${separator}${aiResult.text}`);
+    }
+    isUpdatingRef.current = false;
+    updateEditorFromYjs();
+    setAiResult(null);
+    syncWithServer({ announce: true });
+  };
+
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
@@ -238,6 +287,8 @@ export default function DocumentEditorPage() {
       </div>
     );
   }
+
+  const aiDisabled = doc.role === "VIEWER" || !!aiLoading;
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
@@ -272,6 +323,36 @@ export default function DocumentEditorPage() {
             >
               Update changes
             </button>
+          )}
+
+          {doc.role !== "VIEWER" && (
+            <div className="relative">
+              <button
+                onClick={() => setAiMenuOpen((v) => !v)}
+                disabled={aiDisabled}
+                className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                {aiLoading ? "Thinking..." : "✨ AI Assist"}
+              </button>
+
+              {aiMenuOpen && !aiDisabled && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setAiMenuOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-outline rounded-2xl shadow-xl z-50 overflow-hidden">
+                    {AI_ACTIONS.map((item) => (
+                      <button
+                        key={item.action}
+                        onClick={() => runAiAction(item.action)}
+                        className="w-full text-left px-5 py-3 hover:bg-surface-alt transition-all border-b border-outline last:border-none"
+                      >
+                        <p className="font-medium text-ink text-sm">{item.label}</p>
+                        <p className="text-xs text-gray-500">{item.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           <button
@@ -353,6 +434,49 @@ export default function DocumentEditorPage() {
         <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
         Local-first • Auto-save
       </div>
+
+      {aiResult && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[90] p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-ink">
+                {AI_ACTIONS.find((a) => a.action === aiResult.action)?.label}
+              </h3>
+              <button
+                onClick={() => setAiResult(null)}
+                className="text-gray-400 hover:text-ink text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto border border-outline rounded-2xl p-5 text-sm text-gray-700 whitespace-pre-wrap mb-6">
+              {aiResult.text}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setAiResult(null)}
+                className="flex-1 py-3 border border-outline rounded-2xl font-medium hover:bg-surface-alt"
+              >
+                Discard
+              </button>
+              {aiResult.action !== "fix_grammar" && (
+                <button
+                  onClick={() => applyAiResult("insert")}
+                  className="flex-1 py-3 border border-primary text-primary rounded-2xl font-semibold hover:bg-primary hover:text-white transition-all"
+                >
+                  Insert at end
+                </button>
+              )}
+              <button
+                onClick={() => applyAiResult("replace")}
+                className="flex-1 py-3 bg-primary hover:bg-primary-dark text-white rounded-2xl font-semibold"
+              >
+                Replace document
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ShareModal
         open={showShareModal}
